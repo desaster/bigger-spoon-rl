@@ -7,7 +7,7 @@ use base16_palettes::{
     Palette,
     palettes::{DefaultDark, DefaultPalette},
 };
-use ratatui::prelude::*;
+use ratatui::Frame;
 use webatui::prelude::*;
 use yew::{Context, Renderer};
 
@@ -79,7 +79,7 @@ impl TerminalApp for Game {
         }
     }
 
-    fn render(&self, area: Rect, frame: &mut Frame<'_>) {
+    fn render(&self, area: ratatui::layout::Rect, frame: &mut Frame<'_>) {
         let theme = Theme::default();
         render::draw(self, area, frame, &theme);
     }

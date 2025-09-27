@@ -3,7 +3,9 @@
 
 use base16_palettes::{Base16Color, Base16Palette, Palette};
 use ratatui::{
-    prelude::*,
+    prelude::Rect,
+    style::{Color, Style},
+    Frame,
     text::{Line, Span},
     widgets::Paragraph,
 };
