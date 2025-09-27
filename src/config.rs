@@ -1,7 +1,5 @@
 // NOTE: This file was generated with heavy LLM assistance.
 //       Treat the code as experimental and review before trusting it.
 
-pub mod config;
-pub mod game;
-pub mod render;
-pub mod theme;
+#[cfg_attr(not(feature = "web"), allow(dead_code))]
+pub const DESCEND_REDIRECT_URL: &str = "https://www.google.com";

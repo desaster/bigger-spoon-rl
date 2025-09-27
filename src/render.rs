@@ -1,25 +1,26 @@
 // NOTE: This file was generated with heavy LLM assistance.
 //       Treat the code as experimental and review before trusting it.
 
-use base16_palettes::{
-    Base16Accent, Base16Color, Base16Palette,
-    palettes::{DefaultDark, DefaultPalette},
-};
+use base16_palettes::{Base16Color, Base16Palette, Palette};
 use ratatui::{
     prelude::*,
     text::{Line, Span},
     widgets::Paragraph,
 };
 
-use crate::game::{Game, Monster, MonsterKind, Tile};
+use crate::{
+    game::{Game, Monster, MonsterKind, Tile},
+    theme::Theme,
+};
 
-pub fn draw(game: &Game, area: Rect, frame: &mut Frame<'_>) {
+pub fn draw(game: &Game, area: Rect, frame: &mut Frame<'_>, theme: &Theme) {
     let max_height = area.height as usize;
     let max_width = area.width as usize;
 
-    let bg = palette_color(Base16Color::dark_1());
+    let palette = theme.palette();
+    let bg = palette_color(theme.background, &palette);
     let player_style = Style::default()
-        .fg(palette_color(Base16Color::light_4()))
+        .fg(palette_color(theme.player, &palette))
         .bg(bg);
 
     let mut lines = Vec::with_capacity(max_height);
@@ -27,8 +28,8 @@ pub fn draw(game: &Game, area: Rect, frame: &mut Frame<'_>) {
 
     for y in 0..max_height {
         let mut spans = Vec::with_capacity(max_width);
-
         let map_y = y;
+
         for x in 0..max_width {
             let span = if game.player.x as usize == x && game.player.y as usize == map_y {
                 Span::styled("@", player_style)
@@ -37,9 +38,9 @@ pub fn draw(game: &Game, area: Rect, frame: &mut Frame<'_>) {
                 .iter()
                 .find(|m| m.position.x as usize == x && m.position.y as usize == map_y)
             {
-                render_monster(monster, bg)
+                render_monster(monster, bg, theme, &palette)
             } else if map_y < game.map_height() && x < game.map_width() {
-                render_tile(&game.tile_at(x, map_y), bg)
+                render_tile(&game.tile_at(x, map_y), bg, theme, &palette)
             } else {
                 Span::styled(" ", Style::default().bg(bg))
             };
@@ -60,7 +61,7 @@ pub fn draw(game: &Game, area: Rect, frame: &mut Frame<'_>) {
                 spans[idx] = Span::styled(
                     ch.to_string(),
                     Style::default()
-                        .fg(palette_color(Base16Color::Accent(Base16Accent::Accent04)))
+                        .fg(palette_color(theme.message, &palette))
                         .bg(bg),
                 );
                 end = idx + 1;
@@ -75,43 +76,43 @@ pub fn draw(game: &Game, area: Rect, frame: &mut Frame<'_>) {
     frame.render_widget(para, area);
 }
 
-fn render_tile(tile: &Tile, bg: Color) -> Span<'static> {
+fn render_tile(tile: &Tile, bg: Color, theme: &Theme, palette: &Palette) -> Span<'static> {
     match tile {
         Tile::Empty => Span::styled(" ", Style::default().bg(bg)),
         Tile::Wall => Span::styled(
             "#",
             Style::default()
-                .fg(palette_color(Base16Color::Accent(Base16Accent::Accent01)))
+                .fg(palette_color(theme.wall, palette))
                 .bg(bg),
         ),
         Tile::Floor => Span::styled(
             ".",
             Style::default()
-                .fg(palette_color(Base16Color::dark_3()))
+                .fg(palette_color(theme.floor, palette))
                 .bg(bg),
         ),
         Tile::StairsDown => Span::styled(
             ">",
             Style::default()
-                .fg(palette_color(Base16Color::light_1()))
+                .fg(palette_color(theme.stairs_down, palette))
                 .bg(bg),
         ),
     }
 }
 
-fn render_monster(monster: &Monster, bg: Color) -> Span<'static> {
-    match monster.kind {
-        MonsterKind::Dog => Span::styled(
-            "d",
-            Style::default()
-                .fg(palette_color(Base16Color::Accent(Base16Accent::Accent00)))
-                .bg(bg),
-        ),
-    }
+fn render_monster(monster: &Monster, bg: Color, theme: &Theme, palette: &Palette) -> Span<'static> {
+    let color = theme.monster(monster.kind);
+    let glyph = match monster.kind {
+        MonsterKind::Dog => "d",
+    };
+
+    Span::styled(
+        glyph,
+        Style::default().fg(palette_color(color, palette)).bg(bg),
+    )
 }
 
-fn palette_color(color: Base16Color) -> Color {
-    const PALETTE: DefaultPalette = DefaultPalette::DefaultDark(DefaultDark);
-    let (r, g, b) = PALETTE.to_rgb(color);
+fn palette_color(color: Base16Color, palette: &Palette) -> Color {
+    let (r, g, b) = palette.to_rgb(color);
     Color::Rgb(r, g, b)
 }

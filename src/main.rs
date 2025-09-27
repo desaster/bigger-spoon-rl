@@ -8,8 +8,13 @@
 ))]
 compile_error!("enable exactly one of the features `web` or `native`");
 
+mod config;
 mod game;
 mod render;
+mod theme;
+
+#[cfg(feature = "native")]
+use theme::Theme;
 
 #[cfg(feature = "native")]
 use crate::game::Input;
@@ -47,11 +52,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     terminal.hide_cursor()?;
 
     let mut game = Game::default();
+    let theme = Theme::default();
 
     loop {
         terminal.draw(|frame| {
             let area = frame.size();
-            render::draw(&game, area, frame);
+            render::draw(&game, area, frame, &theme);
         })?;
 
         if event::poll(Duration::from_millis(250))? {

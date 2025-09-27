@@ -12,8 +12,10 @@ use webatui::prelude::*;
 use yew::{Context, Renderer};
 
 use crate::{
+    config,
     game::{Action, Game, Input},
     render,
+    theme::Theme,
 };
 
 impl TerminalApp for Game {
@@ -70,9 +72,7 @@ impl TerminalApp for Game {
             Action::Descend => {
                 #[cfg(target_arch = "wasm32")]
                 if let Some(window) = web_sys::window() {
-                    let _ = window
-                        .location()
-                        .set_href("https://www.github.com/desaster");
+                    let _ = window.location().set_href(config::DESCEND_REDIRECT_URL);
                 }
                 false
             }
@@ -80,7 +80,8 @@ impl TerminalApp for Game {
     }
 
     fn render(&self, area: Rect, frame: &mut Frame<'_>) {
-        render::draw(self, area, frame);
+        let theme = Theme::default();
+        render::draw(self, area, frame, &theme);
     }
 }
 
