@@ -29,6 +29,18 @@ An experiment in "vibe coding"—pairing precise prompts with large language mod
 - **[Base16 Palettes](https://github.com/chriskempson/base16)** (theme colours)
 - **[Crossterm](https://github.com/crossterm-rs/crossterm)** (native terminal control)
 
+# Demo Video Clips
+
+Text console:
+
+https://github.com/user-attachments/assets/bfd75c12-8e9f-4c62-8619-f3f937b90fa0
+
+Web:
+
+https://github.com/user-attachments/assets/a781fbf9-6182-422f-aec8-d501fa39dd2e
+
+
+
 ## Workflow Notes
 
 The entire codebase—architecture, refactors, and documentation—was driven by iterative LLM prompts and human review. The typical loop was:
