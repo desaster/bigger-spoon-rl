@@ -1,3 +1,7 @@
+// NOTE: This file was generated with heavy LLM assistance.
+//       Treat the code as experimental and review before trusting it.
+
+// Enforce that exactly one frontend is active; otherwise fail at compile time.
 #[cfg(any(
     all(feature = "web", feature = "native"),
     not(any(feature = "web", feature = "native")),
@@ -6,6 +10,11 @@ compile_error!("enable exactly one of the features `web` or `native`");
 
 mod game;
 mod render;
+
+#[cfg(feature = "native")]
+use crate::game::Input;
+#[cfg(feature = "native")]
+use crossterm::event::KeyCode;
 
 #[cfg(feature = "web")]
 mod web;
@@ -22,12 +31,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     use crossterm::{
         event::{self, Event},
         execute,
-        terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+        terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
     };
-    use ratatui::{backend::CrosstermBackend, Terminal};
+    use ratatui::{Terminal, backend::CrosstermBackend};
 
     use crate::game::{Action, Game};
 
+    // Standard Crossterm lifecycle: enter raw + alternate screen, run the game loop,
+    // then restore the terminal before exiting.
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
@@ -46,8 +57,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if event::poll(Duration::from_millis(250))? {
             if let Event::Key(key) = event::read()? {
                 if let Some(input) = map_key_to_input(&key.code) {
-                    if matches!(game.handle_input(input), Action::Quit) {
-                        break;
+                    // Game state decides whether to redraw, quit, or trigger special actions.
+                    match game.handle_input(input) {
+                        Action::Quit | Action::Descend => break,
+                        Action::Redraw => {}
                     }
                 }
             }
@@ -62,19 +75,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[cfg(feature = "native")]
-fn map_key_to_input(code: &crossterm::event::KeyCode) -> Option<crate::game::Input> {
+fn map_key_to_input(code: &KeyCode) -> Option<Input> {
+    // Central place for translating vim-style keys into game commands.
     match code {
-        crossterm::event::KeyCode::Char('q') | crossterm::event::KeyCode::Esc => {
-            Some(crate::game::Input::Quit)
-        }
-        crossterm::event::KeyCode::Char('h') => Some(crate::game::Input::MoveLeft),
-        crossterm::event::KeyCode::Char('l') => Some(crate::game::Input::MoveRight),
-        crossterm::event::KeyCode::Char('k') => Some(crate::game::Input::MoveUp),
-        crossterm::event::KeyCode::Char('j') => Some(crate::game::Input::MoveDown),
-        crossterm::event::KeyCode::Char('y') => Some(crate::game::Input::MoveUpLeft),
-        crossterm::event::KeyCode::Char('u') => Some(crate::game::Input::MoveUpRight),
-        crossterm::event::KeyCode::Char('b') => Some(crate::game::Input::MoveDownLeft),
-        crossterm::event::KeyCode::Char('n') => Some(crate::game::Input::MoveDownRight),
+        KeyCode::Char('q') | KeyCode::Esc => Some(Input::Quit),
+        KeyCode::Char('h') => Some(Input::MoveLeft),
+        KeyCode::Char('l') => Some(Input::MoveRight),
+        KeyCode::Char('k') => Some(Input::MoveUp),
+        KeyCode::Char('j') => Some(Input::MoveDown),
+        KeyCode::Char('y') => Some(Input::MoveUpLeft),
+        KeyCode::Char('u') => Some(Input::MoveUpRight),
+        KeyCode::Char('b') => Some(Input::MoveDownLeft),
+        KeyCode::Char('n') => Some(Input::MoveDownRight),
+        KeyCode::Char('>') => Some(Input::Descend),
         _ => None,
     }
 }

@@ -1,3 +1,9 @@
 #!/bin/sh
 
-trunk serve --no-default-features --features web
+ACTION="serve"
+
+if [ "$1" = "build" ]; then
+  ACTION="build"
+fi
+
+trunk "$ACTION" --no-default-features --features web

@@ -1,8 +1,11 @@
+// NOTE: This file was generated with heavy LLM assistance.
+//       Treat the code as experimental and review before trusting it.
+
 #![cfg(feature = "web")]
 
 use base16_palettes::{
-    palettes::{DefaultDark, DefaultPalette},
     Palette,
+    palettes::{DefaultDark, DefaultPalette},
 };
 use ratatui::prelude::*;
 use webatui::prelude::*;
@@ -21,8 +24,8 @@ impl TerminalApp for Game {
         #[cfg(target_arch = "wasm32")]
         {
             use web_sys::{
-                wasm_bindgen::{prelude::Closure, JsCast},
                 KeyboardEvent,
+                wasm_bindgen::{JsCast, prelude::Closure},
             };
 
             if let Some(window) = web_sys::window() {
@@ -35,25 +38,25 @@ impl TerminalApp for Game {
                 }
 
                 let callback = ctx.link().callback(|msg: Input| WebTermMessage::new(msg));
-                let closure = Closure::wrap(Box::new(move |event: KeyboardEvent| {
-                    match event.key().as_str() {
-                        "q" | "Q" => callback.emit(Input::Quit),
-                        "h" | "H" => callback.emit(Input::MoveLeft),
-                        "l" | "L" => callback.emit(Input::MoveRight),
-                        "k" | "K" => callback.emit(Input::MoveUp),
-                        "j" | "J" => callback.emit(Input::MoveDown),
-                        "y" | "Y" => callback.emit(Input::MoveUpLeft),
-                        "u" | "U" => callback.emit(Input::MoveUpRight),
-                        "b" | "B" => callback.emit(Input::MoveDownLeft),
-                        "n" | "N" => callback.emit(Input::MoveDownRight),
-                        _ => {}
-                    }
-                }) as Box<dyn FnMut(_)>);
+                let closure =
+                    Closure::wrap(
+                        Box::new(move |event: KeyboardEvent| match event.key().as_str() {
+                            "q" | "Q" => callback.emit(Input::Quit),
+                            "h" | "H" => callback.emit(Input::MoveLeft),
+                            "l" | "L" => callback.emit(Input::MoveRight),
+                            "k" | "K" => callback.emit(Input::MoveUp),
+                            "j" | "J" => callback.emit(Input::MoveDown),
+                            "y" | "Y" => callback.emit(Input::MoveUpLeft),
+                            "u" | "U" => callback.emit(Input::MoveUpRight),
+                            "b" | "B" => callback.emit(Input::MoveDownLeft),
+                            "n" | "N" => callback.emit(Input::MoveDownRight),
+                            ">" => callback.emit(Input::Descend),
+                            _ => {}
+                        }) as Box<dyn FnMut(_)>,
+                    );
 
-                let _ = window.add_event_listener_with_callback(
-                    "keydown",
-                    closure.as_ref().unchecked_ref(),
-                );
+                let _ = window
+                    .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref());
 
                 closure.forget();
             }
@@ -64,6 +67,15 @@ impl TerminalApp for Game {
         match self.handle_input(input) {
             Action::Redraw => true,
             Action::Quit => false,
+            Action::Descend => {
+                #[cfg(target_arch = "wasm32")]
+                if let Some(window) = web_sys::window() {
+                    let _ = window
+                        .location()
+                        .set_href("https://www.github.com/desaster");
+                }
+                false
+            }
         }
     }
 

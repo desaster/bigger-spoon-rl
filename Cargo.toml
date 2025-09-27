@@ -18,7 +18,8 @@ web-sys = { version = "0.3", optional = true, features = [
     "KeyboardEvent",
     "Document",
     "HtmlElement",
-    "CssStyleDeclaration"
+    "CssStyleDeclaration",
+    "Location"
 ] }
 yew = { version = "0.21", optional = true, default-features = false }
 base16-palettes = { version = "0.1.0", features = ["material"] }
